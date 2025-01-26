@@ -1,276 +1,171 @@
 #nullable enable
 #load "..\Helpers.csx"
-#r "nuget: FluentAssertions, 7.0.0"
-using FluentAssertions;
 using System.Text.RegularExpressions;
 
-var input = File.ReadAllText("2024/inputs/24.test.txt");
+var input = ReadInputText("24.real.txt");
+var sw = Stopwatch.StartNew();
 var wires = Regex.Matches(input, @"(\w{3}): (\d)").ToDictionary(m => m.Groups[1].Value, m => int.Parse(m.Groups[2].Value));
-var swaps = new List<(string a, string b)>
-{
-	("z06", "vwr"),
-	("z11", "tqm"),
-	("z16", "kfs"),
-	("gfv", "hcm"),
-	//("z06", "tz06")
-};
-string.Join(",", swaps.SelectMany(x => new[] { x.a, x.b }).Order()).Dump("Part 2");
-string[] debug = ["thv", "gfv", "hcm"];
 var wiring = Regex.Matches(input, @"(\w+) (\w+) (\w+) -> (\w+)")
-	.Select(m => (
-		w1: m.Groups[1].Value,
-		op: m.Groups[2].Value,
-		w2: m.Groups[3].Value,
-		w3: Swap(m.Groups[4].Value)))
-	.ToArray();
-var wires2 = new Dictionary<string, string>();
-string Swap(string w)
-{
-	var match = swaps.FirstOrDefault(x => x.a == w || x.b == w);
-	if (match.a == null)
-	{
-		return w;
-	}
-	return match.a == w ? match.b : match.a;
-}
+    .Select(m => (
+        w1: m.Groups[1].Value,
+        op: m.Groups[2].Value,
+        w2: m.Groups[3].Value,
+        w3: m.Groups[4].Value))
+    .ToArray();
+var parseTime = sw.Elapsed;
 
-var remainingWires = wiring.Where(w => !wires.ContainsKey(w.w3));
-while (remainingWires.Any())
-{
-	var matched = 0;
-	foreach (var (w1, op, w2, w3) in remainingWires)
-	{
-		if (!wires.ContainsKey(w1) || !wires.ContainsKey(w2))
-			continue;
-			
-		wires[w3] = op switch
-		{
-			"AND" => wires[w1] & wires[w2],
-			"OR" => wires[w1] | wires[w2],
-			"XOR" => wires[w1] ^ wires[w2],
-			_ => throw new ArgumentOutOfRangeException(nameof(op), op, "Unknown gate")
-		};
-		wires2[w3] =
-			(wires2.TryGetValue(w1, out var w1v) ? w1v : w1) +
-			$" {op} " + 
-			(wires2.TryGetValue(w2, out var w2v) ? w2v : w2);
-		matched++;
-	}
-}
+// Part 1
+sw.Restart();
+RunSimulation();
+GetNumber('z').DumpAndAssert("Part 1", 50411513338638);
+var part1Time = sw.Elapsed;
 
-wires.OrderBy(w => w.Key).ToArray().Dump(0);
-wires2.Where(w => w.Key[0] == 'z').OrderBy(w => w.Key).Select(w => $"{w.Key} = {w.Value}").ToArray().Dump(0);
+/* Part 2
 
-GetNumber('z').Dump("Part 1");
+    Building a full adder algo. The operations will look something like below.
+    The wire namings are our target, so we'll be building a rename list for troubleshooting simplicity
 
-(GetNumber('x') + GetNumber('y')).Dump("Part 2: x + y");
+    x00 XOR y00 -> z00
+    x00 AND y00 -> c00
 
-var logic = """
-x00 XOR y00 -> z00
-x00 AND y00 -> c00
+    x01 XOR y01 -> h01
+    x01 AND y01 -> i01
+    c00 XOR h01 -> z01
+    c00 AND h01 -> b01
+    b01 OR  i01 -> c01
 
-x01 XOR y01 -> h01
-x01 AND y01 -> i01
-c00 XOR h01 -> z01
-c00 AND h01 -> b01
-b01 OR  i01 -> c01
+    x02 XOR y02 -> h02
+    x02 AND y02 -> i02
+    c01 XOR h02 -> z02
+    c01 AND h02 -> b02
+    b02 OR  i02 -> c02
 
-x02 XOR y02 -> h02
-x02 AND y02 -> i02
-c01 XOR h02 -> z02
-c01 AND h02 -> b02
-b02 OR  i02 -> c02
+    etc...
 
-x03 XOR y03 -> h03
-x03 AND y03 -> i03
-c02 XOR h03 -> z03
-c02 AND h03 -> b03
-b03 OR  i03 -> c03
+    Based on investigating the data, looks like the wires are only swapped within a single cycle.
+    As such, we don't need to build a fully generic algo, and can instead work within these constraints.
+*/
 
-c03 OR  n00 -> z04
-""";
-
-wiring.Where(w => w.w3[0] == 'z' && w.op != "XOR").Dump("bad1", 0);
-
+sw.Restart();
 var renames = new Dictionary<string, string>();
 var reverse = new Dictionary<string, string>();
-var warnings = new Dictionary<string, string>();
-var counters = new Dictionary<string, int>();
-var manual = new List<(string a, string b)>
+
+// First set should be untouched
+Rename(FindWiring("x00", "AND").w3, "c00");
+
+var swaps = new List<string>();
+var wireCount = int.Parse(wires.Keys.Where(k => k[0] == 'x').OrderDescending().First()[1..]);
+for (var i = 1; i <= wireCount; i++)
 {
-	//("I06", "vwr"), // z06
-	//("B11", "tqm"), // z11 ? possible
-	//("z16", "kfs"),
-	//("I36", "gfv"),
-	//("H36", "hcm"),
-};
-try
-{
-	var wireCount = int.Parse(wires.Keys.Where(k => k[0] == 'x').OrderDescending().First()[1..]);
-	Map(0, "x00", "AND", "y00", "C00");
-	for (int i = 1; i <= wireCount; i++)
-	{
-		Map(i, $"x{i:00}", "XOR", $"y{i:00}", $"H{i:00}");
-		Map(i, $"x{i:00}", "AND", $"y{i:00}", $"I{i:00}");
-	}
+    var (_, hName) = FindWiring($"x{i:00}", "XOR");
+    var (_, iName) = FindWiring($"x{i:00}", "AND");
+    var (h1, zName) = FindWiring($"c{i-1:00}", "XOR");
+    var (h2, bName) = FindWiring($"c{i-1:00}", "AND");
 
-	for (int i = 1; i <= wireCount; i++)
-	{
-		Map(i, $"C{i - 1:00}", "XOR", $"H{i:00}", $"z{i:00}");
-		Map(i, $"C{i - 1:00}", "AND", $"H{i:00}", $"B{i:00}");
-		Map(i, $"B{i:00}", "OR", $"I{i:00}", $"C{i:00}");
-	}
-}
-finally
-{
-	wiring.Where(w => w.w3[0] == 'z' && w.op != "XOR").Dump("bad after renames");
+    // In case H and I are swapped
+    if (zName[0] == 'z' && h1 == iName)
+    {
+        SwapOutputs(hName, iName);
 
-	foreach (var (w1, op, w2, w3) in wiring)
-	{
-		CountWires(w1);
-		CountWires(w2);
+        var tmp = hName;
+        hName = iName;
+        iName = tmp;
+    }
 
-		void CountWires(string wire)
-		{
-			wire = Rename(wire);
-			if (!counters.TryGetValue(wire, out var c))
-			{
-				c = 0;
-			}
-			counters[wire] = ++c;
-		}
-	}
-	counters
-		.Where(c => c.Key[0] is 'B' or 'I' or 'H' or 'C')
-		.Where(c => c.Value != (c.Key[0] is 'B' or 'I' ? 1 : 2))
-		.Dump("bad counters");
+    if (hName[0] != 'z')
+        Rename(hName, $"h{i:00}");
+    if (iName[0] != 'z')
+        Rename(iName, $"i{i:00}");
+    if (bName[0] != 'z')
+        Rename(bName, $"b{i:00}");
 
-	warnings.Dump("warnings");
-	
-	wiring.Where(w => debug.Contains(w.w1) || debug.Contains(w.w2)).Dump("debug", 0);
-	
-	var newWiring = wiring
-		.Select(w =>
-		{
-			var wires = new[] { Reverse(w.w1), Reverse(w.w2) }.Order().ToArray();
-			if (!int.TryParse(wires[1][1..], out var i)) i = -1;
-			var (w1, op, w2, w3) = (wires[0], w.op, wires[1], Reverse(w.w3));
-			var exp = new string([w1[0], op[0], w2[0]]) switch
-			{
-				"xXy" => $"H{i:00}",
-				"xAy" => $"I{i:00}",
-				"CXH" => $"z{i:00}",
-				"CAH" => $"B{i:00}",
-				"BOI" => $"C{i:00}",
-				_ => "ERR",
-			};
-			var expVal = exp;
-			if (renames.ContainsKey(expVal))
-				exp += $" {renames[expVal]}";
-			if (w3 != expVal)
-				exp = "!!! " + exp;
-			return (w1, op, w2, w3, exp, i);
-		})
-		.OrderBy(w => w.i >= 0 ? w.i : int.MaxValue)
-		.ThenBy(w => w.w1[0] != 'x')
-		.ThenBy(w => w.w1[0] != 'y')
-		.ThenBy(w => w.w1[0] != 'C')
-		.ThenBy(w => w.w1[0] != 'H' ? w.w1 : "Z")
-		.ThenBy(w => w.w1[0] != 'I' ? w.w1 : "Z")
-		.ThenByDescending(w => w.op);
-	newWiring.Dump("ALL Wirings", 0);
-	newWiring
-		.GroupBy(w => w.i)
-		.SkipWhile(g => g.Key == 0 || g.All(w => w.exp[0] != '!'))
-		.Dump();
-	renames.Dump();
+    if (zName[0] != 'z')
+    {
+        // Let's find what was swapped with Z
+        var goodLetter = hName[0] == 'z'
+            ? 'h'
+            : iName[0] == 'z'
+            ? 'i'
+            : bName[0] == 'z'
+            ? 'b'
+            : 'c';
+        SwapOutputs($"z{i:00}", Reverse(zName));
+
+        Rename(zName, $"{goodLetter}{i:00}");
+    }
+
+    var cName = FindWiring($"b{i:00}", "OR").w3;
+    Rename(cName, $"c{i:00}");
+
+    void SwapOutputs(string o1, string o2)
+    {
+        var (index1, a) = wiring.Index().Where(x => x.Item.w3 == o1).First();
+        var (index2, b) = wiring.Index().Where(x => x.Item.w3 == o2).First();
+
+        wiring[index1] = (a.w1, a.op, a.w2, b.w3);
+        wiring[index2] = (b.w1, b.op, b.w2, a.w3);
+
+        swaps.AddRange(o1, o2);
+    }
 }
 
+RunSimulation();
+var expectedResult = GetNumber('x') + GetNumber('y');
+GetNumber('z').DumpAndAssert("Part 2 calculation", expectedResult);
 
-void Map(int i, string ow1, string op, string ow2, string ow3)
+string.Join(",", swaps.Order()).DumpAndAssert("Part 2", "gfv,hcm,kfs,tqm,vwr,z06,z11,z16");
+var part2Time = sw.Elapsed;
+
+PrintTimings(parseTime, part1Time, part2Time);
+
+// Helpers
+void RunSimulation()
 {
-	var w1 = Rename(ow1);
-	var w2 = Rename(ow2);
-	var w3 = Rename(ow3);
+    // Reset the wires
+    foreach (var key in wires.Keys.Where(k => k[0] != 'x' && k[0] != 'y').ToArray())
+        wires.Remove(key);
 
-	var connection = wiring
-		.Where(w => (w.w1, w.op, w.w2) == (w1, op, w2) || (w.w1, w.op, w.w2) == (w2, op, w1))
-		.SingleOrDefault();
-	if (connection.w1 is null)
-		throw new Exception($"Oops at {i}: {w1} ({ow1}) {op} {w2} ({ow2}) -> {w3} ({ow3})");
-	var cw3 = connection.w3;
-	//if (cw3[0] == 'z' && w3[0] != 'z')
-	//{
-	//	if (TrySwap(cw3, out var n))
-	//		cw3 = n;
-	//	else
-	//	{
-	//		warnings[cw3 + ".1"] = $"mapping to z, when should be something else ({w3})";
-	//		return;
-	//	}
-	//	//if (renames.TryGetValue(cw3, out var ncw3))
-	//	//{
-	//	//	swaps[ncw3] = cw3;
-	//	//	cw3 = 
-	//	//}
-	//	//throw new Exception($"Trying to map to z at {i}: {w1} {op} {w2} -> {w3}");
-	//}
-	//if (w3[0] == 'z')
-	//{
-	//	if (TrySwap(cw3, out var n))
-	//		w3 = n;
-	//	else
-	//	{
-	//		warnings[w3 + ".2"] = $"trying to use z when should be something else {cw3}";
-	//		return;
-	//	}
-	//	//if (renames.TryGetValue(cw3, out var ncw3))
-	//	//{
-	//	//	swaps[ncw3] = cw3;
-	//	//	cw3 = 
-	//	//}
-	//	//throw new Exception($"Trying to map to z at {i}: {w1} {op} {w2} -> {w3}");
-	//}
-	
-	if (w3 == cw3 && w3[0] == 'z')
-	{
-		return;
-	}
-	
-	if (w3 == cw3 && w3[0] != cw3[0])
-		throw new Exception("lol " + w3);
-		
-	if (cw3.Length > 3 && cw3[0] != w3[0])
-	{
-		warnings[cw3 + ".3"] = $"{cw3} but expecting {w3}";
-	}
-	
-	if (w3[0] == 'z' || cw3[0] == 'z')
-	{
-		return;
-		Util.Break();
-	}
-	
-	renames[w3] = cw3;
-	reverse[cw3] = w3;
+    var remainingWires = wiring.Where(w => !wires.ContainsKey(w.w3));
+    while (remainingWires.Any())
+    {
+        foreach (var (w1, op, w2, w3) in remainingWires)
+        {
+            if (!wires.ContainsKey(w1) || !wires.ContainsKey(w2))
+                continue;
+
+            wires[w3] = op switch
+            {
+                "AND" => wires[w1] & wires[w2],
+                "OR" => wires[w1] | wires[w2],
+                "XOR" => wires[w1] ^ wires[w2],
+                _ => throw new ArgumentOutOfRangeException(nameof(op), op, "Unknown gate")
+            };
+        }
+    }
 }
+
+long GetNumber(char wireSet)
+    => Convert.ToInt64(new string(wires
+    .Where(w => w.Key.StartsWith(wireSet))
+    .OrderByDescending(w => w.Key)
+    .Select(w => (char)('0' + w.Value))
+    .ToArray()), 2);
+
 string Rename(string w) => renames.TryGetValue(w, out var r) ? r : w;
 string Reverse(string w) => reverse.TryGetValue(w, out var r) ? r : w;
-bool TrySwap(string w, out string o)
+void Rename(string name, string mappedName)
 {
-	var match = manual.FirstOrDefault(x => x.a == w || x.b == w);
-	if (match.a == null)
-	{
-		o = w;
-		return false;
-	}
-	o = match.a == w ? match.b : match.a;
-	return true;
+    renames[name] = mappedName;
+    reverse[mappedName] = name;
 }
 
-Int64 GetNumber(char wireSet)
-	=> Convert.ToInt64(new string(wires
-	.Where(w => w.Key.StartsWith(wireSet))
-	.OrderByDescending(w => w.Key)
-	.Select(w => (char)('0' + w.Value))
-	.ToArray()), 2);
+(string w2, string w3) FindWiring(string w1, string op)
+{
+    w1 = Rename(w1);
+    return wiring
+        .Where(x => x.op == op)
+        .Select(x => (w1: Rename(x.w1), w2: Rename(x.w2), x.w3))
+        .Where(x => w1 == x.w1 || w1 == x.w2)
+        .Select(x => (w1 == x.w1 ? x.w2 : x.w1, x.w3))
+        .FirstOrDefault();
+}
