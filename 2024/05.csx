@@ -1,22 +1,28 @@
 #load "..\Helpers.csx"
-#r "nuget: FluentAssertions, 7.0.0"
-using FluentAssertions;
 
-var lines = File.ReadAllLines("2024/inputs/05.real.txt");
-var pageRules = lines.TakeWhile(l => l.Length > 0).Select(l => l.Split('|').Select(i => Convert.ToInt32(i)).ToArray()).ToLookup(l => l[1], l => l[0]);
-var updates = lines.SkipWhile(l => l.Length > 0).Skip(1).Select(l => l.Split(',').Select(i => Convert.ToInt32(i)).ToArray()).ToArray();
+var lines = ReadInputLines("05.real.txt");
+var sw = Stopwatch.StartNew();
+var pageRules = lines.TakeWhile(l => l.Length > 0).Select(l => l.Split('|').Select(int.Parse).ToArray()).ToLookup(l => l[1], l => l[0]);
+var updates = lines.SkipWhile(l => l.Length > 0).Skip(1).Select(l => l.Split(',').Select(int.Parse).ToArray()).ToArray();
+var parseTime = sw.Elapsed;
 
 // Part 1
-var totalValid = updates.Where(isUpdateValid).Sum(u => u[u.Length / 2]);
-totalValid.Dump("Part 1").Should().BeOneOf(143, 5329);
+sw.Restart();
+var totalValid = updates.Where(IsUpdateValid).Sum(u => u[u.Length / 2]);
+totalValid.DumpAndAssert("Part 1", 143, 5329);
+var part1Time = sw.Elapsed;
 
 // Part 2
+sw.Restart();
 var totalInvalid = updates
-	.Where(u => !isUpdateValid(u))
-	.Sum(u => u
-		.Order(Comparer<int>.Create((a, b) => a == b ? 0 : pageRules[a].Contains(b) ? 1 : -1))
-		.ElementAt(u.Length / 2));
-totalInvalid.Dump("Part 2").Should().BeOneOf(123, 5833);
+    .Where(u => !IsUpdateValid(u))
+    .Sum(u => u
+        .Order(Comparer<int>.Create((a, b) => a == b ? 0 : pageRules[a].Contains(b) ? 1 : -1))
+        .ElementAt(u.Length / 2));
+totalInvalid.DumpAndAssert("Part 2", 123, 5833);
+var part2Time = sw.Elapsed;
 
-bool isUpdateValid(int[] update)
-	=> !update.Index().Any(x => pageRules[x.Item].Intersect(update.Skip(x.Index)).Any());
+PrintTimings(parseTime, part1Time, part2Time);
+
+bool IsUpdateValid(int[] update)
+    => !update.Index().Any(x => pageRules[x.Item].Intersect(update.Skip(x.Index)).Any());

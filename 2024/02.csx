@@ -1,36 +1,47 @@
 #load "..\Helpers.csx"
-#r "nuget: FluentAssertions, 7.0.0"
-using FluentAssertions;
 
-var input = ReadInputLines("02.real.txt")
-	.Select(line => line.Trim()
-		.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-		.Select(s => Convert.ToInt32(s))
-		.ToArray())
-	.ToArray();
+var lines = ReadInputLines("02.real.txt");
+var sw = Stopwatch.StartNew();
+var input = lines
+    .Select(line => line.Trim()
+        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Select(int.Parse)
+        .ToArray())
+    .ToArray();
+var parseTime = sw.Elapsed;
 
 // Part 1
-var results = input.Select(v => ValidateLevel(v));
-var result = results.Count(r => r).Dump("Part 1").Should().BeOneOf(2, 534);
+sw.Restart();
+input.Count(v => ValidateLevel(v)).DumpAndAssert("Part 1", 2, 534);
+var part1Time = sw.Elapsed;
 
 // Part 2
-results = input.Select(v => ValidateLevelWithDampener(v));
-results.Count(r => r).Dump("Part 2").Should().BeOneOf(4, 577);
+sw.Restart();
+input.Count(v => ValidateLevelWithDampener(v)).DumpAndAssert("Part 2", 4, 577);
+var part2Time = sw.Elapsed;
 
+PrintTimings(parseTime, part1Time, part2Time);
 
-static bool ValidateLevel(int[] values)
-	=> values.Aggregate(
-		((int?)null, (bool?)null),
-		(r, v) => (r.Item1, r.Item2, v) switch
-		{
-			( < 0, _, _) => (-1, null),
-			(null, null, _) => (v, null),
-			({ }, _, _) when r.Item1 == v => (-2, null),
-			({ }, _, _) when Math.Abs(r.Item1.Value - v) > 3 => (-3, null),
-			({ }, null, _) => (v, r.Item1 < v),
-			({ }, { }, _) when r.Item1 < v != r.Item2 => (-4, null),
-			_ => (v, r.Item2)
-		}).Item1 >= 0;
-		
+static bool ValidateLevel(ICollection<int> values)
+    => values.Aggregate(
+        (last: (int?)null, increasing: (bool?)null),
+        (r, v) => (r.last, r.increasing, v) switch
+        {
+            ( < 0, _, _) => (r.last.Value, null),                           // Failure fast exit
+            (null, null, _) => (v, null),                                   // First pass
+            ({ }, _, _) when r.last == v => (-2, null),                     // Same value
+            ({ }, _, _) when Math.Abs(r.last.Value - v) > 3 => (-3, null),  // Too fast
+            ({ }, null, _) => (v, r.last < v),                              // Second value (learning whether we're increasing or not)
+            ({ }, { }, _) when r.last < v != r.increasing => (-4, null),    // Direction swap
+            _ => (v, r.increasing)
+        }).last >= 0;
+
 static bool ValidateLevelWithDampener(int[] values)
-	=> ValidateLevel(values) ? true : Enumerable.Range(0, values.Length).Any(i => { var result = values.ToList(); result.RemoveAt(i); return ValidateLevel(result.ToArray()); });
+    => ValidateLevel(values) ||
+        Enumerable.Range(0, values.Length)
+        .Any(i =>
+        {
+            var result = values.ToList();
+            result.RemoveAt(i);
+            return ValidateLevel(result);
+        });

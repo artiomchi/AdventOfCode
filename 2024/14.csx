@@ -1,85 +1,88 @@
 #load "..\Helpers.csx"
-#r "nuget: FluentAssertions, 7.0.0"
-using FluentAssertions;
 using System.Text.RegularExpressions;
 
-var input = File.ReadAllText("2024/inputs/14.real.txt");
-
+var input = ReadInputText("14.real.txt");
+var sw = Stopwatch.StartNew();
 var mapMatch = Regex.Match(input, @"x=(?<x>\d+) y=(?<y>\d+)");
-var map = (x: int.Parse(mapMatch.Groups["x"].Value), y: int.Parse(mapMatch.Groups["y"].Value));
+var map = (Width: int.Parse(mapMatch.Groups["x"].Value), Height: int.Parse(mapMatch.Groups["y"].Value));
 
 var robots = Regex.Matches(input, @"p=(?<px>[-\d]+),(?<py>[-\d]+) v=(?<vx>[-\d]+),(?<vy>[-\d]+)")
-	.Select(m => new Robot(
-		new Point(Convert.ToInt32(m.Groups["px"].Value), Convert.ToInt32(m.Groups["py"].Value)),
-		new Velocity(Convert.ToInt32(m.Groups["vx"].Value), Convert.ToInt32(m.Groups["vy"].Value))))
-	.ToArray();
+    .Select(m => new Robot(
+        new Point(int.Parse(m.Groups["px"].Value), int.Parse(m.Groups["py"].Value)),
+        new Vector(int.Parse(m.Groups["vx"].Value), int.Parse(m.Groups["vy"].Value))))
+    .ToArray();
+var parseTime = sw.Elapsed;
 
 // Part 1
+sw.Restart();
 foreach (var robot in robots)
 {
-	robot.Move(map, 100);
+    robot.Move(map, 100);
 }
 new[] {
-	robots.Where(r => r.Pos.x < map.x / 2 && r.Pos.y < map.y / 2).Count(),
-	robots.Where(r => r.Pos.x > map.x / 2 && r.Pos.y < map.y / 2).Count(),
-	robots.Where(r => r.Pos.x < map.x / 2 && r.Pos.y > map.y / 2).Count(),
-	robots.Where(r => r.Pos.x > map.x / 2 && r.Pos.y > map.y / 2).Count(),
-}.Aggregate(1, (s, i) => s * i).Dump("Part 1").Should().BeOneOf(12, 219512160);
+    robots.Where(r => r.Pos.X < map.Width / 2 && r.Pos.Y < map.Height / 2).Count(),
+    robots.Where(r => r.Pos.X > map.Width / 2 && r.Pos.Y < map.Height / 2).Count(),
+    robots.Where(r => r.Pos.X < map.Width / 2 && r.Pos.Y > map.Height / 2).Count(),
+    robots.Where(r => r.Pos.X > map.Width / 2 && r.Pos.Y > map.Height / 2).Count(),
+}.Aggregate(1, (s, i) => s * i).DumpAndAssert("Part 1", 12, 219512160);
+var part1Time = sw.Elapsed;
 
 // Part 2
+sw.Restart();
 foreach (var robot in robots) robot.Reset();
 var seconds = 0;
 while (++seconds < 10_000)
 {
-	var current = new Map(map.x, map.y).Fill();
-	foreach (var robot in robots)
-	{
-		robot.Move(map);
-		current[robot.Pos.x, robot.Pos.y] = 'X';
-	}
+    var current = new Map(map.Width, map.Height).Fill();
+    foreach (var robot in robots)
+    {
+        robot.Move(map);
+        current[robot.Pos.X, robot.Pos.Y] = 'X';
+    }
 
-	var maxSequence = 0;
-	for (var y = 0; y < map.y; y++)
-	{
-		var sequence = 0;
-		for (var x = 0; x < map.x; x++)
-			if (current[x,y] == 'X')
-				sequence++;
-			else
-			{
-				maxSequence = Math.Max(maxSequence, sequence);
-				sequence = 0;
-			}
-		maxSequence = Math.Max(maxSequence, sequence); 
-	}
+    var maxSequence = 0;
+    for (var y = 0; y < map.Height; y++)
+    {
+        var sequence = 0;
+        for (var x = 0; x < map.Width; x++)
+            if (current[x,y] == 'X')
+                sequence++;
+            else
+            {
+                maxSequence = Math.Max(maxSequence, sequence);
+                sequence = 0;
+            }
+        maxSequence = Math.Max(maxSequence, sequence);
+    }
 
-	if (maxSequence > 10)
-	{
-		seconds.Dump("Part 2").Should().Be(6398);
-		//current.ToImage(200).Dump();
-		break;
-	}
+    if (maxSequence > 10)
+    {
+        seconds.DumpAndAssert("Part 2", 6398);
+        break;
+    }
 }
+var part2Time = sw.Elapsed;
 
-class Robot(Point pos, Velocity vel)
+PrintTimings(parseTime, part1Time, part2Time);
+
+class Robot(Point pos, Vector vel)
 {
-	private Point InitialPosition {get;set;} = pos;
-	public Point Pos { get; set; } = pos;
-	public Velocity Vel { get; } = vel;
-	
-	public void Move((int x, int y) map, int seconds = 1) => Pos = (Pos + (Vel * seconds)).Normalise(map);
-	public void Reset() => Pos = InitialPosition;
+    private Point InitialPosition { get; set; } = pos;
+    public Point Pos { get; set; } = pos;
+    public Vector Vel { get; } = vel;
+
+    public void Move((int x, int y) map, int seconds = 1) => Pos = (Pos + (Vel * seconds)).Normalise(map);
+    public void Reset() => Pos = InitialPosition;
 }
 
 partial record struct Point
 {
-	//public Point Normalise((int x, int y) map) => (x % map.x + (x < 0 ? map.x : 0), y % map.y + (y < 0 ? map.y : 0));
-	public Point Normalise((int x, int y) map)
-	{
-		var nx = x % map.x;
-		if (nx < 0) nx += map.x;
-		var ny = y % map.y;
-		if (ny < 0) ny += map.y;
-		return (nx, ny);
-	}
+    public Point Normalise((int width, int height) map)
+    {
+        var nx = X % map.width;
+        if (nx < 0) nx += map.width;
+        var ny = Y % map.height;
+        if (ny < 0) ny += map.height;
+        return (nx, ny);
+    }
 }

@@ -1,5 +1,4 @@
 .vscode
 inputs
-bin
-obj
-.vs
+publish
+desktop.ini

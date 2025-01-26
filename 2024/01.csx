@@ -1,51 +1,33 @@
 #load "..\Helpers.csx"
-#r "nuget: FluentAssertions, 7.0.0"
-#r "nuget: System.Numerics.Tensors, 9.0.0"
-using FluentAssertions;
-using FluentAssertions.Execution;
-using System.Buffers;
-using System.Numerics.Tensors;
 
-var input = ReadInputLines("01.real.txt")
-    .Select(line => line.Trim()
-        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-        .Select(s => Convert.ToInt32(s))
-        .ToArray())
-    .ToArray();
-int[] list1 = new int[input.Length], list2 = new int[input.Length];
-foreach (var (i, values) in input.Index())
-{
-    list1[i] = values[0];
-    list2[i] = values[1];
-}
-list1 = list1.Order().ToArray();
-list2 = list2.Order().ToArray();
+var lines = ReadInputLines("01.real.txt");
+var sw = Stopwatch.StartNew();
+var (list1, list2) = lines.Aggregate(
+    (l1: new List<int>(), l2: new List<int>()),
+    (x, l) =>
+    {
+        var nums = l.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        x.l1.Add(int.Parse(nums[0]));
+        x.l2.Add(int.Parse(nums[1]));
+        return x;
+    });
+list1.Sort();
+list2.Sort();
+var parseTime = sw.Elapsed;
 
 // Part 1
-var distance = Enumerable.Range(0, list1.Length)
-    .Aggregate(
-        0, 
-        (s, i) => s + Math.Abs(list1[i] - list2[i]))
-    .Dump("distance");
-
-// Part 1 v2 using Tensors
-using (var result = MemoryPool<int>.Shared.Rent(list1.Length))
-{
-    TensorPrimitives.Subtract<int>(list1, list2, result.Memory.Span);
-    TensorPrimitives.Abs<int>(result.Memory.Span, result.Memory.Span);
-    distance = TensorPrimitives.Sum<int>(result.Memory.Span);
-}
+sw.Restart();
+Enumerable.Range(0, list1.Count)
+    .Aggregate(0, (s, i) => s + Math.Abs(list1[i] - list2[i]))
+    .DumpAndAssert("Part 1", 11, 1830467);
+var part1Time = sw.Elapsed;
 
 // Part 2
-var similarity = Enumerable.Range(0, list1.Length)
-    .Aggregate(
-        0, 
-        (s, i) => s + list1[i] * list2.Count(j => list1[i] == j))
-    .Dump("similarity");
+sw.Restart();
+var list2Counts = list2.GroupBy(i => i).ToDictionary(g => g.Key, g => g.Count());
+Enumerable.Range(0, list1.Count)
+    .Aggregate(0, (s, i) => s + list1[i] * list2Counts.GetValueOrDefault(list1[i]))
+    .DumpAndAssert("Part 2", 31, 26674158);
+var part2Time = sw.Elapsed;
 
-// Assert
-using (var _ = new AssertionScope())
-{
-    distance.Should().BeOneOf(11, 1830467);
-    similarity.Should().BeOneOf(31, 26674158);
-}
+PrintTimings(parseTime, part1Time, part2Time);

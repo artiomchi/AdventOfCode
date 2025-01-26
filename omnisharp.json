@@ -2,5 +2,8 @@
   "script": {
     "enableScriptNuGetReferences": true,
     "defaultTargetFramework": "net9.0"
+  },
+  "FormattingOptions": {
+    "enableEditorConfigSupport": true
   }
 }

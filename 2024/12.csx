@@ -1,151 +1,134 @@
 #nullable enable
 #load "..\Helpers.csx"
-#r "nuget: FluentAssertions, 7.0.0"
-using FluentAssertions;
 
-var lines = File.ReadAllLines("2024/inputs/12.real.txt");
-
+var lines = ReadInputLines("12.real.txt");
+var sw = Stopwatch.StartNew();
 var map = lines.Index()
-	.Select(x => x.Item.Index().Select(y => new Cell(x.Index, y.Index, y.Item)).ToArray()).ToArray();
-var groups = new Dictionary<Guid, int>();
+    .Select(x => x.Item.Index().Select(y => new Cell(x.Index, y.Index, y.Item)).ToArray()).ToArray();
+var parseTime = sw.Elapsed;
 
+sw.Restart();
+var groups = new Dictionary<Guid, int>();
 var totalByPieces = 0;
 var totalBySides = 0;
 foreach (var (x, row) in map.Index())
-	foreach (var (y, cell) in row.Index())
-	{
-		if (cell.Group != null)
-			continue;
+    foreach (var (y, cell) in row.Index())
+    {
+        if (cell.Group != null)
+            continue;
 
-		cell.Group = Guid.NewGuid();
-		var groupCells = LinkedCells(map, (x, y)).Append(cell).ToArray();
-		
-		var fencePieces = groupCells
-			.SelectMany(c => Enum.GetValues<Dir>()
-				.Select(d => (dir: d, cell: GetCell(map, c.P, d)))
-				.Where(t => t.cell == null || t.cell.Plant != map[x][y].Plant)
-				.Select(t => t.dir switch
-				{
-					Dir.L => (a: (c.P.x, c.P.y), b: (c.P.x, c.P.y + 1)),
-					Dir.U => (a: (c.P.x, c.P.y), b: (c.P.x + 1, c.P.y)),
-					Dir.R => (a: (c.P.x + 1, c.P.y), b: (c.P.x + 1, c.P.y + 1)),
-					_ => (a: (c.P.x, c.P.y + 1), b: (c.P.x + 1, c.P.y + 1)),	
-				})
-				.Select(t => Ord(t)))
-			.ToList();
-		var add = groupCells.Length * fencePieces.Count;
-		totalByPieces += add;
+        cell.Group = Guid.NewGuid();
+        var groupCells = LinkedCells(map, (x, y)).Append(cell).ToArray();
 
-		add = 0;
-		var sides = 0;
-		while (fencePieces.Count > 0)
-		{
-			var turns = 0;
-			var current = fencePieces.OrderBy(t => t.a.x).ThenBy(t => t.a.y).ThenBy(x => x.hor).First();
-			fencePieces.Remove(current);
-			var edge = current.b;
-			var prev = current;
-			var start = current.a;
-			var dir = Dir.R;
-			do
-			{
-				var newDir = dir;
-				Line? next;
-				Point newEdge;
-				do {
-					newDir = Rotate(newDir);
-					newEdge = Move(edge, newDir);
-					next = fencePieces
-						.Where(p => (p.a == edge && p.b == newEdge) || (p.a == newEdge && p.b == edge))
-						.Select(p => (Line?)p)
-						.FirstOrDefault();
-				}
-				while (next is null);
-				fencePieces.Remove(next.Value);
-				if (current.hor != next.Value.hor)
-					turns++;
-				prev = current;
-				current = next.Value;
-				edge = newEdge;
-				dir = newDir;
-			}
-			while (start != edge);
-			add += groupCells.Length * (turns + 1);
-			sides += turns + 1;
-		}
-		totalBySides += add;
+        var fencePieces = groupCells
+            .SelectMany(c => Vector.Directions
+                .Select(d => (dir: d, cell: GetCell(map, c.P, d)))
+                .Where(t => t.cell == null || t.cell.Plant != map[x][y].Plant)
+                .Select(t => (Line)(t.dir switch
+                {
+                    (-1, 0) => (c.P, c.P + (0, 1)),
+                    (0, -1) => (c.P, c.P + (1, 0)),
+                    (1, 0) => (c.P + (1, 0), c.P + (1, 1)),
+                    _ => (c.P + (0, 1), c.P + (1, 1)),
+                }))
+                .Select(t => t.Normalise()))
+            .ToList();
+        var add = groupCells.Length * fencePieces.Count;
+        totalByPieces += add;
 
-		//$"{cell.Plant} size: {groupCells.Length}, sides: {sides}, total: {add}".Dump();
-	}
+        add = 0;
+        var sides = 0;
+        while (fencePieces.Count > 0)
+        {
+            var turns = 0;
+            var current = fencePieces.OrderBy(t => t.A.X).ThenBy(t => t.A.Y).ThenBy(x => x.IsHorizontal).First();
+            fencePieces.Remove(current);
+            var edge = current.B;
+            var prev = current;
+            var start = current.A;
+            Vector dir = '>';
+            do
+            {
+                var newDir = dir;
+                Line? next;
+                Point newEdge;
+                do {
+                    newDir = newDir.Rotate();
+                    newEdge = edge.Move(newDir);
+                    next = fencePieces
+                        .Where(p => (p.A == edge && p.B == newEdge) || (p.A == newEdge && p.B == edge))
+                        .Select(p => (Line?)p)
+                        .FirstOrDefault();
+                }
+                while (next is null);
+                fencePieces.Remove(next.Value);
+                if (current.IsHorizontal != next.Value.IsHorizontal)
+                    turns++;
+                prev = current;
+                current = next.Value;
+                edge = newEdge;
+                dir = newDir;
+            }
+            while (start != edge);
+            add += groupCells.Length * (turns + 1);
+            sides += turns + 1;
+        }
+        totalBySides += add;
+    }
 
-totalByPieces.Dump("Part 1").Should().BeOneOf(140, 772, 1930, 1477762, 1184);
-totalBySides.Dump("Part 2").Should().BeOneOf(80, 436, 368, 1206, 923480);
+totalByPieces.DumpAndAssert("Part 1", 140, 772, 1930, 1477762, 1184);
+totalBySides.DumpAndAssert("Part 2", 80, 436, 368, 1206, 923480);
+var partsTime = sw.Elapsed;
 
-enum Dir { U, D, L, R }
-static Point Vector(Dir direction)
-	=> direction switch
-	{
-		Dir.L => (-1, 0),
-		Dir.U => (0, -1),
-		Dir.R => (1, 0),
-		_ => (0, 1),
-	};
-static Dir Rotate(Dir direction)
-	=> direction switch
-	{
-		Dir.R => Dir.D,
-		Dir.D => Dir.L,
-		Dir.L => Dir.U,
-		_ => Dir.R
-	};
-static Point Move(Point point, Dir direction, int length = 1)
-	=> (point.x + Vector(direction).x * length, point.y + Vector(direction).y * length);
-static Line Ord(Line line)
-	=> line.a.x < line.b.x
-	? line
-	: line.a.x == line.b.x && line.a.y < line.b.y
-	? line
-	: (line.b, line.a);
+PrintTimings(parseTime, partsTime);
 
-static Cell? GetCell(Cell[][] map, Point point, Dir direction)
+static Cell? GetCell(Cell[][] map, Point point, Vector direction)
 {
-	return direction switch
-	{
-		Dir.L when point.x > 0 => map[point.x - 1][point.y],
-		Dir.U when point.y > 0 => map[point.x][point.y - 1],
-		Dir.R when point.x < map.Length - 1 => map[point.x + 1][point.y],
-		Dir.D when point.y < map[0].Length - 1 => map[point.x][point.y + 1],
-		_ => null
-	};
+    point = point.Move(direction);
+    return point.IsInBounds(map.Length, map[0].Length)
+        ? map[point.X][point.Y]
+        : null;
 }
 
 static IEnumerable<Cell> LinkedCells(Cell[][] map, Point point)
 {
-	return Enum.GetValues<Dir>()
-		.Select(d => GetCell(map, point, d))
-		.Where(d => d?.Plant == map[point.x][point.y].Plant && d.Group == null)
-		.SelectMany(c =>
-		{
-			c!.Group = map[point.x][point.y].Group;
-			return LinkedCells(map, c.P).Append(c);
-		});
+    return Vector.Directions
+        .Select(d => GetCell(map, point, d))
+        .Where(c => c?.Plant == map[point.X][point.Y].Plant && c.Group == null)
+        .SelectMany(c =>
+        {
+            c!.Group = map[point.X][point.Y].Group;
+            return LinkedCells(map, c.P).Append(c);
+        });
 }
 
-// You can define other methods, fields, classes and namespaces here
-// record struct Point(int x, int y)
-// {
-// 	public static implicit operator Point((int x, int y) p) => new Point(p.x, p.y);
-// }
-
-record struct Line(Point a, Point b)
+public partial record struct Vector
 {
-	public bool hor => a.y == b.y;
-	public static implicit operator Line((Point a, Point b) l) => new Line(l.a, l.b);
+    public Vector Rotate()
+        => this switch
+        {
+            (1, 0) => 'v',
+            (0, 1) => '<',
+            (-1, 0) => '^',
+            _ => '>'
+        };
+}
+
+readonly record struct Line(Point A, Point B)
+{
+    public bool IsHorizontal => A.Y == B.Y;
+
+    public static implicit operator Line((Point a, Point b) l) => new(l.a, l.b);
+
+    public Line Normalise()
+        => A.X < B.X || (A.X == B.X && A.Y < B.Y)
+        ? this
+        : (B, A);
 }
 
 class Cell(int x, int y, char plant)
 {
-	public Point P { get; set; } = (x, y);
-	public char Plant { get; set; } = plant;
-	public Guid? Group { get; set; }
+    public Point P { get; set; } = (x, y);
+    public char Plant { get; set; } = plant;
+    public Guid? Group { get; set; }
 }

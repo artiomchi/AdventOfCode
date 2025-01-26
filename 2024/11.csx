@@ -1,41 +1,48 @@
 #load "..\Helpers.csx"
-#r "nuget: FluentAssertions, 7.0.0"
-using FluentAssertions;
 using System.Numerics;
 
-var input = File.ReadAllText("2024/inputs/11.real.txt");
-
+var input = ReadInputText("11.real.txt");
+var sw = Stopwatch.StartNew();
 var data = input.Split(' ')
-	.Select(s => Convert.ToInt64(s))
-	.GroupBy(s => s)
-	.ToDictionary(g => g.Key, g => (long)g.Count());
-	
+    .Select(long.Parse)
+    .GroupBy(s => s)
+    .ToDictionary(g => g.Key, g => (long)g.Count());
+var parseTime = sw.Elapsed;
+
+sw.Restart();
+var part1Time = TimeSpan.Zero;
 for (var i = 0; i < 75; i++)
 {
-	var newData = new Dictionary<long, long>();
-	foreach (var stone in data.Keys)
-	{
-		var newStones = stone switch
-		{
-			0 => [1],
-			_ when Math.Log10(stone) % 2 >= 1 => split(stone),
-			_ => [stone * 2024]
-		};
-		foreach (var num in newStones)
-		{
-			newData[num] = newData.TryGetValue(num, out var count) ? count + data[stone] : data[stone];
-		}
-	}
-	data = newData;
+    var newData = new Dictionary<long, long>();
+    foreach (var stone in data.Keys)
+    {
+        var newStones = stone switch
+        {
+            0 => [1],
+            _ when Math.Log10(stone) % 2 >= 1 => Split(stone),
+            _ => [stone * 2024]
+        };
+        foreach (var num in newStones)
+        {
+            newData[num] = newData.TryGetValue(num, out var count) ? count + data[stone] : data[stone];
+        }
+    }
+    data = newData;
 
-	if (i == 24)
-		data.Values.Sum().Dump("Part 1").Should().BeOneOf(55312, 186424);
+    if (i == 24)
+    {
+        data.Values.Sum().DumpAndAssert("Part 1", 55312, 186424);
+        part1Time = sw.Elapsed;
+    }
 }
 
-data.Values.Sum().Dump("Part 2").Should().BeOneOf(219838428124832);
+data.Values.Sum().DumpAndAssert("Part 2", 219838428124832);
+var part2Time = sw.Elapsed;
 
-long[] split(long number)
+PrintTimings(parseTime, part1Time, part2Time);
+
+long[] Split(long number)
 {
-	var splitNum = Convert.ToInt64(Math.Pow(10, Math.Floor(Math.Log10(number) + 1) / 2));
-	return [number / splitNum, number % splitNum];
+    var splitNum = (long)Math.Pow(10, Math.Floor(Math.Log10(number) + 1) / 2);
+    return [number / splitNum, number % splitNum];
 }
