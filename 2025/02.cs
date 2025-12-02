@@ -1,5 +1,6 @@
 #!/usr/bin/dotnet run
-using System.Runtime.CompilerServices;
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
 
 #region Asserts
 
@@ -36,7 +37,7 @@ AssertNumber(118118118, false, true);
 
 #endregion
 
-var input = ReadInputText("02.real.txt")
+var input = FileHelpers.ReadInputText("02.real.txt")
     .Split(['\n', '\r', ','], StringSplitOptions.RemoveEmptyEntries)
     .ToArray();
 
@@ -66,11 +67,6 @@ foreach (var range in input)
 
 Console.WriteLine($"Result: {result1}");
 Console.WriteLine($"Result: {result2}");
-
-static string InputFilePath(string fileName, [CallerFilePath] string scriptPath = null!)
-    => Path.Combine(Path.GetDirectoryName(scriptPath)!, "inputs", fileName);
-static string ReadInputText(string fileName, [CallerFilePath] string scriptPath = null!)
-    => File.ReadAllText(InputFilePath(fileName, scriptPath));
 
 static bool IsValidNumber1(long number)
 {

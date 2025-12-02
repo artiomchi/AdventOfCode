@@ -1,4 +1,6 @@
 #!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
 
 #region Asserts
 
@@ -26,8 +28,7 @@ AssertMove(99, "R101", (0, 2));
 
 #endregion
 
-var inputs = File.ReadAllLines("inputs/01.real.txt")
-    .ToArray();
+var inputs = FileHelpers.ReadInputLines("01.real.txt");
 var position = 50;
 var resets = 0;
 var zeroes = 0;
