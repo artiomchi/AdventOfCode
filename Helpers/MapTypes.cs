@@ -1,4 +1,4 @@
-#nullable enable
+namespace AoC.Helpers;
 
 readonly public partial record struct Point(int X, int Y)
 {
@@ -103,6 +103,13 @@ public partial class Map(int width, int height)
         return map;
     }
 
+    public IEnumerable<Point> AllPoints()
+    {
+        for (var y = 0; y < Height; y++)
+            for (var x = 0; x < Width; x++)
+                yield return new Point(x, y);
+    }
+
     public void Save()
     {
         _savePoint = (char[,])Matrix.Clone();
@@ -114,9 +121,10 @@ public partial class Map(int width, int height)
             throw new InvalidOperationException("Not saved yet");
         Matrix = (char[,])_savePoint.Clone();
     }
+
     public override string ToString()
     {
-        var result = new StringBuilder();
+        var result = new System.Text.StringBuilder();
         for (var y = 0; y < Height; y++)
         {
             for (var x = 0; x < Width; x++)
