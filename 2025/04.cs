@@ -1,12 +1,12 @@
 #!/usr/bin/dotnet run
 #:project ../Helpers/AoC.Helpers.csproj
-using System.Diagnostics;
 using AoC.Helpers;
+using System.Diagnostics;
 
 var sw = Stopwatch.StartNew();
 var map = Map.FromString(FileHelpers.ReadInputText("04.real.txt"));
 var parseTime = sw.Elapsed;
-    
+
 sw.Restart();
 var accessible = RemoveRolls(map);
 Console.WriteLine("Accessible positions: " + accessible);
