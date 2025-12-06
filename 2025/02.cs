@@ -37,7 +37,7 @@ AssertNumber(118118118, false, true);
 
 #endregion
 
-var input = FileHelpers.ReadInputText("02.real.txt")
+var input = FileHelpers.ReadInputText("02.txt")
     .Split(['\n', '\r', ','], StringSplitOptions.RemoveEmptyEntries)
     .ToArray();
 

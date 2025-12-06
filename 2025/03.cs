@@ -2,7 +2,7 @@
 #:project ../Helpers/AoC.Helpers.csproj
 using AoC.Helpers;
 
-var input = FileHelpers.ReadInputLines("03.real.txt");
+var input = FileHelpers.ReadInputLines("03.txt");
 
 long total1 = 0, total2 = 0;
 

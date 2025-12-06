@@ -4,7 +4,7 @@ using AoC.Helpers;
 using System.Diagnostics;
 
 var sw = Stopwatch.StartNew();
-var map = Map.FromString(FileHelpers.ReadInputText("04.real.txt"));
+var map = Map.FromString(FileHelpers.ReadInputText("04.txt"));
 var parseTime = sw.Elapsed;
 
 sw.Restart();

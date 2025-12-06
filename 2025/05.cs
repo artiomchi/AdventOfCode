@@ -4,7 +4,7 @@ using AoC.Helpers;
 using System.Diagnostics;
 
 var sw = Stopwatch.StartNew();
-var input = FileHelpers.ReadInputLines("05.real.txt");
+var input = FileHelpers.ReadInputLines("05.txt");
 var ranges = input
     .TakeWhile(s => !string.IsNullOrEmpty(s))
     .Select(l => l.Split('-', 2))
@@ -18,10 +18,8 @@ var ingredients = input
 var parseTime = sw.Elapsed;
 
 sw.Restart();
-var fresh = ingredients
-    .Where(n => ranges.Any(r => n >= r.start && n <= r.end))
-    .ToArray();
-Console.WriteLine($"Part 1: {fresh.Length}");
+var fresh = ingredients.Count(n => ranges.Any(r => n >= r.start && n <= r.end));
+Console.WriteLine($"Part 1: {fresh}");
 var part1Time = sw.Elapsed;
 
 sw.Restart();

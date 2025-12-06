@@ -28,7 +28,7 @@ AssertMove(99, "R101", (0, 2));
 
 #endregion
 
-var inputs = FileHelpers.ReadInputLines("01.real.txt");
+var inputs = FileHelpers.ReadInputLines("01.txt");
 var position = 50;
 var resets = 0;
 var zeroes = 0;
