@@ -1,6 +1,7 @@
 .vscode
+.session
+.inputs
 bin
 obj
-inputs
 publish
 desktop.ini
