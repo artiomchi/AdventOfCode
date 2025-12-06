@@ -38,7 +38,7 @@ public class FileHelpers
             response.EnsureSuccessStatusCode();
 
             Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
-            File.WriteAllText(filePath, response.Content.ReadAsStringAsync().GetAwaiter().GetResult().TrimEnd());
+            File.WriteAllText(filePath, response.Content.ReadAsStringAsync().GetAwaiter().GetResult().TrimEnd('\n', '\r'));
             Console.WriteLine($"Downloaded input file to: {filePath}");
         }
 

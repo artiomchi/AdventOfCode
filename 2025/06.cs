@@ -1,13 +1,17 @@
 #!/usr/bin/dotnet run
 #:project ../Helpers/AoC.Helpers.csproj
 using AoC.Helpers;
+using System.Diagnostics;
 
+var sw = Stopwatch.StartNew();
 var lines = FileHelpers.ReadInputLines("06.txt");
 var data = lines
     .Select(l => l.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
     .ToArray();
+var parseTime = sw.Elapsed;
 
 // Part 1
+sw.Restart();
 var numbers1 = data.Take(data.Length - 1)
     .Select(l => l.Select(int.Parse).ToArray())
     .ToArray();
@@ -16,13 +20,15 @@ long total1 = 0;
 foreach (var (i, op) in lines[^1].Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Index())
 {
     total1 += numbers1.Aggregate(
-        op == "*" ? (long)1 : 0, 
+        op == "*" ? (long)1 : 0,
         (acc, l) => op == "*" ? acc * l[i] : acc + l[i]);
 }
 
-Console.WriteLine($"Total 1: {total1}");
+total1.DumpAndAssert("Part 1", 4277556, 5361735137219);
+var part1Time = sw.Elapsed;
 
 // Part 2
+sw.Restart();
 long total2 = 0;
 var index = 0;
 do
@@ -37,12 +43,15 @@ do
     var op = lines[^1][index];
 
     total2 += numbers2.Aggregate(
-        op == '*' ? (long)1 : 0, 
+        op == '*' ? (long)1 : 0,
         (acc, l) => op == '*' ? acc * l : acc + l);
-    
+
     if (nextIndex == -1)
         break;
     index = nextIndex;
 }
 while (true);
-Console.WriteLine($"Total 2: {total2}");
+total2.DumpAndAssert("Part 2", 3263827, 11744693538946);
+var part2Time = sw.Elapsed;
+
+OutputHelpers.PrintTimings(parseTime, part1Time, part2Time);

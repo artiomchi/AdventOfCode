@@ -1,6 +1,7 @@
 #!/usr/bin/dotnet run
 #:project ../Helpers/AoC.Helpers.csproj
 using AoC.Helpers;
+using System.Diagnostics;
 
 #region Asserts
 
@@ -28,11 +29,14 @@ AssertMove(99, "R101", (0, 2));
 
 #endregion
 
+var sw = Stopwatch.StartNew();
 var inputs = FileHelpers.ReadInputLines("01.txt");
+var parseTime = sw.Elapsed;
+
+sw.Restart();
 var position = 50;
 var resets = 0;
 var zeroes = 0;
-
 foreach (var move in inputs)
 {
     var (positionAfterMove, zeroesAfterMove) = ProcessMove(position, move);
@@ -42,10 +46,12 @@ foreach (var move in inputs)
 
     //Console.WriteLine($"Steps: {move}, Position: {position}, Resets: {resets}, Zeroes: {zeroes}");
 }
+var solveTime = sw.Elapsed;
 
-Console.WriteLine($"Final Position: {position}");
-Console.WriteLine($"Resets: {resets}");
-Console.WriteLine($"Zeroes: {zeroes}");
+//Console.WriteLine($"Final Position: {position}");
+resets.DumpAndAssert("Part 1", 3, 1118);
+zeroes.DumpAndAssert("Part 2", 6, 6289);
+OutputHelpers.PrintTimings(parseTime, solveTime);
 
 static (int position, int zeroes) ProcessMove(int position, string move)
 {

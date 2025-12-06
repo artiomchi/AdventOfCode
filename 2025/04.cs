@@ -9,7 +9,7 @@ var parseTime = sw.Elapsed;
 
 sw.Restart();
 var accessible = RemoveRolls(map);
-Console.WriteLine("Accessible positions: " + accessible);
+accessible.DumpAndAssert("Part 1", 13, 1533);
 var part1Time = sw.Elapsed;
 
 sw.Restart();
@@ -19,7 +19,7 @@ while ((removed = RemoveRolls(map)) > 0)
     totalRemoved += removed;
 }
 
-Console.WriteLine("Total removed positions: " + totalRemoved);
+totalRemoved.DumpAndAssert("Part 2", 43, 9206);
 var part2Time = sw.Elapsed;
 
 OutputHelpers.PrintTimings(parseTime, part1Time, part2Time);

@@ -1,6 +1,7 @@
 #!/usr/bin/dotnet run
 #:project ../Helpers/AoC.Helpers.csproj
 using AoC.Helpers;
+using System.Diagnostics;
 
 #region Asserts
 
@@ -37,12 +38,14 @@ AssertNumber(118118118, false, true);
 
 #endregion
 
+var sw = Stopwatch.StartNew();
 var input = FileHelpers.ReadInputText("02.txt")
     .Split(['\n', '\r', ','], StringSplitOptions.RemoveEmptyEntries)
     .ToArray();
+var parseTime = sw.Elapsed;
 
+sw.Restart();
 long result1 = 0, result2 = 0;
-
 foreach (var range in input)
 {
     var (start, end) = range.Split('-') switch
@@ -64,9 +67,11 @@ foreach (var range in input)
     }
 
 }
+var solveTime = sw.Elapsed;
 
-Console.WriteLine($"Result: {result1}");
-Console.WriteLine($"Result: {result2}");
+result1.DumpAndAssert("Part 1", 1227775554, 54641809925);
+result2.DumpAndAssert("Part 2", 4174379265, 73694270688);
+OutputHelpers.PrintTimings(parseTime, solveTime);
 
 static bool IsValidNumber1(long number)
 {

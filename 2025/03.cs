@@ -1,40 +1,45 @@
 #!/usr/bin/dotnet run
 #:project ../Helpers/AoC.Helpers.csproj
 using AoC.Helpers;
+using System.Diagnostics;
 
-var input = FileHelpers.ReadInputLines("03.txt");
+var sw = Stopwatch.StartNew();
+var input = FileHelpers.ReadInputLines("03.txt")
+    .Select(l => l.Select(c => c - '0').ToArray())
+    .ToArray();
+var parseTime = sw.Elapsed;
 
 long total1 = 0, total2 = 0;
 
-foreach (var line in input)
+sw.Restart();
+foreach (var digits in input)
 {
-    var digits = line.Select(c => c - '0').ToArray();
-
-    // Part 1
-    {
-        var first = digits[..^1].Max();
-        var second = digits.SkipWhile(d => d != first).Skip(1).Max();
-        total1 += first * 10 + second;
-    }
-
-    // Part 2
-    {
-        var index = 0;
-        var remaining = 12;
-        long bank = 0;
-
-        while (remaining > 0)
-        {
-            remaining--;
-
-            var next = digits[index..^remaining].Max();
-            bank = bank * 10 + next;
-            index += digits[index..].IndexOf(next) + 1;
-        }
-
-        total2 += bank;
-    }
+    var first = digits[..^1].Max();
+    var second = digits.SkipWhile(d => d != first).Skip(1).Max();
+    total1 += first * 10 + second;
 }
+total1.DumpAndAssert("Part 1", 357, 17524);
+var part1Time = sw.Elapsed;
 
-Console.WriteLine($"Total joltage 1: {total1}");
-Console.WriteLine($"Total joltage 2: {total2}");
+sw.Restart();
+foreach (var digits in input)
+{
+    var index = 0;
+    var remaining = 12;
+    long bank = 0;
+
+    while (remaining > 0)
+    {
+        remaining--;
+
+        var next = digits[index..^remaining].Max();
+        bank = bank * 10 + next;
+        index += digits[index..].IndexOf(next) + 1;
+    }
+
+    total2 += bank;
+}
+total2.DumpAndAssert("Part 2", 3121910778619, 173848577117276);
+var part2Time = sw.Elapsed;
+
+OutputHelpers.PrintTimings(parseTime, part1Time, part2Time);

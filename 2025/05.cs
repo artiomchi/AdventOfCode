@@ -19,7 +19,7 @@ var parseTime = sw.Elapsed;
 
 sw.Restart();
 var fresh = ingredients.Count(n => ranges.Any(r => n >= r.start && n <= r.end));
-Console.WriteLine($"Part 1: {fresh}");
+fresh.DumpAndAssert("Part 1", 3, 674);
 var part1Time = sw.Elapsed;
 
 sw.Restart();
@@ -34,7 +34,7 @@ foreach (var (start, end) in ranges.OrderBy(x => x.start))
     last = end;
 }
 
-Console.WriteLine($"Part 2: {allFreshCount}");
+allFreshCount.DumpAndAssert("Part 2", 14, 352509891817881);
 var part2Time = sw.Elapsed;
 
 OutputHelpers.PrintTimings(parseTime, part1Time, part2Time);
