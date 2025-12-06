@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet run
+#!/usr/bin/env dotnet
 #:project ../Helpers/AoC.Helpers.csproj
 using AoC.Helpers;
 using System.Diagnostics;

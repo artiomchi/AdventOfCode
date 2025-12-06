@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet run
+#!/usr/bin/env dotnet
 #:package System.Numerics.Tensors@9.0.0
 #:project ../Helpers/AoC.Helpers.csproj
 using AoC.Helpers;
