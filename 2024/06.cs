@@ -1,6 +1,9 @@
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 
-var lines = ReadInputLines("06.real.txt");
+var lines = FileHelpers.ReadInputLines("06.txt");
 var sw = new Stopwatch();
 
 // Part 1
@@ -27,7 +30,7 @@ for (int i = 1; i < matrix.Length - 1; i++)
 loops.DumpAndAssert("Part 2", 6, 1984);
 var part2Time = sw.Elapsed;
 
-PrintTimings(part1Time, part2Time);
+OutputHelpers.PrintTimings(part1Time, part2Time);
 
 // Helpers
 char[][] GetMap() => lines
@@ -42,7 +45,7 @@ static bool SimulateRun(char[][] matrix)
     var pos = GetPos(matrix);
     while (true)
     {
-        var steps = Int32.TryParse(matrix[pos.x][pos.y].ToString(), out var st) ? st + 1 : 1;
+        var steps = int.TryParse(matrix[pos.x][pos.y].ToString(), out var st) ? st + 1 : 1;
         if (steps > 4)
             return false;
         matrix[pos.x][pos.y] = steps.ToString()[0];

@@ -1,7 +1,10 @@
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
-var input = ReadInputText("13.real.txt");
+var input = FileHelpers.ReadInputText("13.txt");
 var sw = Stopwatch.StartNew();
 var machines = Regex.Matches(input, @"Button A: X\+(?<ax>\d+), Y\+(?<ay>\d+)\s+Button B: X\+(?<bx>\d+), Y\+(?<by>\d+)\s+Prize: X=(?<px>\d+), Y=(?<py>\d+)")
     .Select(m => new Machine
@@ -20,7 +23,7 @@ sw.Restart();
 Solve(machines, true).DumpAndAssert("Part 2", 875318608908, 104015411578548);
 var part2Time = sw.Elapsed;
 
-PrintTimings(parseTime, part1Time, part2Time);
+OutputHelpers.PrintTimings(parseTime, part1Time, part2Time);
 
 static long Solve(Machine[] machines, bool part2)
 {

@@ -1,7 +1,10 @@
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
-var input = ReadInputText("17.real.txt");
+var input = FileHelpers.ReadInputText("17.txt");
 var sw = Stopwatch.StartNew();
 var match = Regex.Match(input, @"A: (?<a>\d+)\s+\w+ B: (?<b>\d+)\s+\w+ C: (?<c>\d+)\s+Program: (?<i>[\d,]+)");
 var ra = int.Parse(match.Groups["a"].Value);
@@ -13,7 +16,7 @@ var inputs = match.Groups["i"].Value.Split(',').Select(int.Parse).ToArray();
 for (int i = 0; i < inputs.Length / 2; i++)
 {
     var literal = inputs[i * 2 + 1];
-    WriteLine(inputs[i * 2] switch
+    Console.WriteLine(inputs[i * 2] switch
     {
         0 => $"adv {ComboDef()}\t\teax /= 2 ^ {ComboDef()}",
         1 => $"bxl {literal}\t\tebx ^= {literal}",
@@ -35,7 +38,7 @@ for (int i = 0; i < inputs.Length / 2; i++)
             _ => throw new NotImplementedException("Combo operand reserved and not implemented: " + literal),
         };
 }
-WriteLine("---");
+Console.WriteLine("---");
 var parseTime = sw.Elapsed;
 
 // Part 1
@@ -69,7 +72,7 @@ for (int i = 1; i <= inputs.Length; i++)
 min.DumpAndAssert("Part 2", 266932601404433);
 var part2Time = sw.Elapsed;
 
-PrintTimings(parseTime, part1Time, part2Time);
+OutputHelpers.PrintTimings(parseTime, part1Time, part2Time);
 
 bool Test(long ra, int[] inputs, int digits)
 {

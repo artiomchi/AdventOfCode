@@ -1,7 +1,10 @@
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
 using System.Buffers;
+using System.Diagnostics;
 
-var lines = ReadInputLines("19.real.txt");
+var lines = FileHelpers.ReadInputLines("19.txt");
 var sw = Stopwatch.StartNew();
 var towels = lines[0].Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries).OrderByDescending(t => t.Length).ToArray();
 var patterns = lines.Skip(2);
@@ -48,4 +51,4 @@ possible.DumpAndAssert("Part 1", 6, 283);
 combinations.DumpAndAssert("Part 2", 16, 615388132411142);
 var solveTime = sw.Elapsed;
 
-PrintTimings(parseTime, solveTime);
+OutputHelpers.PrintTimings(parseTime, solveTime);

@@ -1,10 +1,13 @@
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
-var input = ReadInputText("14.real.txt");
+//var map = (Width: 11, Height: 7); // Sample input
+var map = (Width: 101, Height: 103);
+var input = FileHelpers.ReadInputText("14.txt");
 var sw = Stopwatch.StartNew();
-var mapMatch = Regex.Match(input, @"x=(?<x>\d+) y=(?<y>\d+)");
-var map = (Width: int.Parse(mapMatch.Groups["x"].Value), Height: int.Parse(mapMatch.Groups["y"].Value));
 
 var robots = Regex.Matches(input, @"p=(?<px>[-\d]+),(?<py>[-\d]+) v=(?<vx>[-\d]+),(?<vy>[-\d]+)")
     .Select(m => new Robot(
@@ -63,7 +66,7 @@ while (++seconds < 10_000)
 }
 var part2Time = sw.Elapsed;
 
-PrintTimings(parseTime, part1Time, part2Time);
+OutputHelpers.PrintTimings(parseTime, part1Time, part2Time);
 
 class Robot(Point pos, Vector vel)
 {
@@ -75,14 +78,17 @@ class Robot(Point pos, Vector vel)
     public void Reset() => Pos = InitialPosition;
 }
 
-partial record struct Point
+static class LocalExtensions
 {
-    public Point Normalise((int width, int height) map)
+    extension(Point point)
     {
-        var nx = X % map.width;
-        if (nx < 0) nx += map.width;
-        var ny = Y % map.height;
-        if (ny < 0) ny += map.height;
-        return (nx, ny);
+        public Point Normalise((int width, int height) map)
+        {
+            var nx = point.X % map.width;
+            if (nx < 0) nx += map.width;
+            var ny = point.Y % map.height;
+            if (ny < 0) ny += map.height;
+            return (nx, ny);
+        }
     }
 }

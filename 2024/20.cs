@@ -1,6 +1,9 @@
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 
-var input = ReadInputText("20.real.txt");
+var input = FileHelpers.ReadInputText("20.txt");
 
 var sw = Stopwatch.StartNew();
 var map = Map.FromString(input.Replace('.', ' '));
@@ -111,7 +114,7 @@ foreach (var (i, pos) in steps.Take(steps.Count - 3).Index())
 skips2.Select(s => s.skips).Count(i => i >= 100).DumpAndAssert("Part 2", 0, 990096);
 var part2Time = sw.Elapsed;
 
-PrintTimings(parseTime, part1Time, part2Time);
+OutputHelpers.PrintTimings(parseTime, part1Time, part2Time);
 
 //debugContainer.Dump("Debug");
 

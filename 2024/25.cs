@@ -1,9 +1,11 @@
-#nullable enable
-#load "..\Helpers.csx"
-#r "nuget: System.Numerics.Tensors, 9.0.0"
+#!/usr/bin/dotnet run
+#:package System.Numerics.Tensors@9.0.0
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 using System.Numerics.Tensors;
 
-var input = ReadInputText("25.real.txt");
+var input = FileHelpers.ReadInputText("25.txt");
 var sw = Stopwatch.StartNew();
 var lines = input.Split(Environment.NewLine + Environment.NewLine);
 var locks = lines.Where(l => l[0] == '#').Select(ParseLock);
@@ -20,7 +22,7 @@ var matches =
 matches.Count().DumpAndAssert("Part 1", 3, 3196);
 var solveTime = sw.Elapsed;
 
-PrintTimings(parseTime, solveTime);
+OutputHelpers.PrintTimings(parseTime, solveTime);
 
 bool IsMatch(int[] l, int[] k)
 {

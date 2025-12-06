@@ -1,6 +1,9 @@
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 
-var input = ReadInputText("16.real.txt").Replace('.', ' ');
+var input = FileHelpers.ReadInputText("16.txt").Replace('.', ' ');
 var sw = Stopwatch.StartNew();
 var map = Map.FromString(input);
 var start = map.Find('S');
@@ -98,7 +101,7 @@ var bestDeers = deers.Where(d => d.Steps[^1] == end && d.Score == bestDeer.Score
 bestDeers.SelectMany(d => d.Steps).Distinct().Count().DumpAndAssert("Part 2", 64, 492);
 var part2Time = sw.Elapsed;
 
-PrintTimings(parseTime, runTime, part1Time, part2Time);
+OutputHelpers.PrintTimings(parseTime, runTime, part1Time, part2Time);
 
 class Deer(List<Point> steps, Vector direction, int score)
 {

@@ -1,5 +1,7 @@
-#nullable enable
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 
 var keypadMapSrc = """
 789
@@ -12,7 +14,7 @@ var arrowsMapSrc = """
 <v>
 """;
 
-var input = ReadInputText("21.real.txt");
+var input = FileHelpers.ReadInputText("21.txt");
 
 // Part 1
 var sw = Stopwatch.StartNew();
@@ -24,7 +26,7 @@ sw.Restart();
 Assert(input, 25 + 1).DumpAndAssert("Part 2", 154115708116294, 281212077733592);
 var part2Time = sw.Elapsed;
 
-PrintTimings(part1Time, part2Time);
+OutputHelpers.PrintTimings(part1Time, part2Time);
 
 long Assert(string input, int robotCount)
 {

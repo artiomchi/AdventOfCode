@@ -1,6 +1,9 @@
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 
-var lines = ReadInputLines("05.real.txt");
+var lines = FileHelpers.ReadInputLines("05.txt");
 var sw = Stopwatch.StartNew();
 var pageRules = lines.TakeWhile(l => l.Length > 0).Select(l => l.Split('|').Select(int.Parse).ToArray()).ToLookup(l => l[1], l => l[0]);
 var updates = lines.SkipWhile(l => l.Length > 0).Skip(1).Select(l => l.Split(',').Select(int.Parse).ToArray()).ToArray();
@@ -22,7 +25,7 @@ var totalInvalid = updates
 totalInvalid.DumpAndAssert("Part 2", 123, 5833);
 var part2Time = sw.Elapsed;
 
-PrintTimings(parseTime, part1Time, part2Time);
+OutputHelpers.PrintTimings(parseTime, part1Time, part2Time);
 
 bool IsUpdateValid(int[] update)
     => !update.Index().Any(x => pageRules[x.Item].Intersect(update.Skip(x.Index)).Any());

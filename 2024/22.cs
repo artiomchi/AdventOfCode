@@ -1,7 +1,9 @@
-#nullable enable
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 
-var lines = ReadInputLines("22.real.txt");
+var lines = FileHelpers.ReadInputLines("22.txt");
 
 // Part 1
 var sw = Stopwatch.StartNew();
@@ -52,7 +54,7 @@ var best = nums
     .DumpAndAssert("Part 2", 24, 23, 2445);
 var part2Time = sw.Elapsed;
 
-PrintTimings(part1Time, part2Time);
+OutputHelpers.PrintTimings(part1Time, part2Time);
 
 long Process(long secret)
 {

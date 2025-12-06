@@ -1,6 +1,9 @@
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 
-var lines = ReadInputLines("07.real.txt");
+var lines = FileHelpers.ReadInputLines("07.txt");
 var sw = Stopwatch.StartNew();
 var equasions = lines.Select(l => l.Split(new[] { ':', ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(i => Convert.ToInt64(i)).ToArray()).ToArray();
 var parseTime = sw.Elapsed;
@@ -33,7 +36,7 @@ foreach (var equasion in equasions)
 result.DumpAndAssert("Part 2", 11387, 472290821152397);
 var part2Time = sw.Elapsed;
 
-PrintTimings(parseTime, part1Time, part2Time);
+OutputHelpers.PrintTimings(parseTime, part1Time, part2Time);
 
 static bool Validate(long expected, long acc, ReadOnlySpan<long> values, int operations = 2)
 {

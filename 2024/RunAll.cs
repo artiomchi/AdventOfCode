@@ -1,12 +1,12 @@
-#r "nuget: CliWrap, 3.7.0"
+#:package CliWrap@3.7.0
 using System.Runtime.CompilerServices;
 using CliWrap;
 
 // Unfinished days
-int[] excluded = [24];
+int[] excluded = [];
 
 int firstDay = 1, lastDay = 25;
-var daysArg = Args.FirstOrDefault(a => a.All(c => c == '.' || char.IsDigit(c)));
+var daysArg = args.FirstOrDefault(a => a.All(c => c == '.' || char.IsDigit(c)));
 if (daysArg != null)
 {
     if (int.TryParse(daysArg, out var day))
@@ -34,37 +34,37 @@ if (daysArg != null)
 }
 var days = Enumerable.Range(firstDay, lastDay - firstDay + 1).Except(excluded).ToArray();
 
-if (Args?.Contains("clean") == true)
+if (args?.Contains("clean") == true)
 {
-    WriteLine("Cleaning...");
+    Console.WriteLine("Cleaning...");
     Directory.Delete(Path.Combine(GetScriptFolder(), "publish"), true);
 }
 
-WriteLine("Pre-compiling...");
+Console.WriteLine("Pre-compiling...");
 foreach (var d in days)
 {
     if (File.Exists(Path.Combine(GetScriptFolder(), $"publish\\{d:00}.dll")))
         continue;
     await Cli.Wrap("dotnet")
-        .WithArguments($"script publish -c Release --dll {d:00}.csx")
+        .WithArguments($"build -c Release {d:00}.cs")
         .WithWorkingDirectory(GetScriptFolder())
-        .WithStandardErrorPipe(PipeTarget.ToStream(OpenStandardError()))
-        .WithStandardOutputPipe(PipeTarget.ToStream(OpenStandardOutput()))
+        .WithStandardErrorPipe(PipeTarget.ToStream(Console.OpenStandardError()))
+        .WithStandardOutputPipe(PipeTarget.ToStream(Console.OpenStandardOutput()))
         .ExecuteAsync();
 }
 
 foreach (var d in days)
 {
-    WriteLine(new string('#', 30));
-    WriteLine($"Day {d:00}:");
-    var result = await Cli.Wrap("dotnet.exe")
-        .WithArguments($"script exec publish\\{d:00}.dll")
+    Console.WriteLine(new string('#', 30));
+    Console.WriteLine($"Day {d:00}:");
+    var result = await Cli.Wrap("dotnet")
+        .WithArguments($"run -c Release {d:00}.cs")
         .WithWorkingDirectory(GetScriptFolder())
-        .WithStandardErrorPipe(PipeTarget.ToStream(OpenStandardError()))
-        .WithStandardOutputPipe(PipeTarget.ToStream(OpenStandardOutput()))
+        .WithStandardErrorPipe(PipeTarget.ToStream(Console.OpenStandardError()))
+        .WithStandardOutputPipe(PipeTarget.ToStream(Console.OpenStandardOutput()))
         .ExecuteAsync();
-    WriteLine();
+    Console.WriteLine();
 }
 
-public static string GetScriptFolder([CallerFilePath] string scriptPath = null!)
+static string GetScriptFolder([CallerFilePath] string scriptPath = null!)
     => Path.GetDirectoryName(scriptPath)!;

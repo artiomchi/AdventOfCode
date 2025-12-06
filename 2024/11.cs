@@ -1,7 +1,10 @@
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 using System.Numerics;
 
-var input = ReadInputText("11.real.txt");
+var input = FileHelpers.ReadInputText("11.txt");
 var sw = Stopwatch.StartNew();
 var data = input.Split(' ')
     .Select(long.Parse)
@@ -39,7 +42,7 @@ for (var i = 0; i < 75; i++)
 data.Values.Sum().DumpAndAssert("Part 2", 219838428124832);
 var part2Time = sw.Elapsed;
 
-PrintTimings(parseTime, part1Time, part2Time);
+OutputHelpers.PrintTimings(parseTime, part1Time, part2Time);
 
 long[] Split(long number)
 {

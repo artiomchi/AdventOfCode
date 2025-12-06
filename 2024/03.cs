@@ -1,7 +1,10 @@
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
-var input = ReadInputText("03.real.txt");
+var input = FileHelpers.ReadInputText("03.txt");
 var sw = new Stopwatch();
 
 // Part 1
@@ -27,4 +30,4 @@ result = matches.Aggregate(
 result.DumpAndAssert("Part 2", 48, 113965544);
 var part2Time = sw.Elapsed;
 
-PrintTimings(part1Time, part2Time);
+OutputHelpers.PrintTimings(part1Time, part2Time);

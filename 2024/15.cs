@@ -1,8 +1,11 @@
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 const char Empty = ' ';
-var lines = ReadInputText("15.real.txt").Replace('.', Empty).Split(Environment.NewLine);
+var lines = FileHelpers.ReadInputText("15.txt").Replace('.', Empty).Split(Environment.NewLine);
 var sw = Stopwatch.StartNew();
 
 var mapLines = lines.TakeWhile(l => l.Length > 0).ToArray();
@@ -27,7 +30,7 @@ foreach (var (y, line) in mapLines.Index())
 Process(map, operations, true).DumpAndAssert("Part 2", 9021, 1521453);
 var part2Time = sw.Elapsed;
 
-PrintTimings(parseTime, part1Time, part2Time);
+OutputHelpers.PrintTimings(parseTime, part1Time, part2Time);
 
 static int Process(Map map, char[] operations, bool part2)
 {

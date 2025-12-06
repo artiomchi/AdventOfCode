@@ -1,6 +1,9 @@
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 
-var input = ReadInputText("09.real.txt");
+var input = FileHelpers.ReadInputText("09.txt");
 var sw = new Stopwatch();
 
 // Part 1
@@ -36,7 +39,7 @@ var sw = new Stopwatch();
 
     checksum.DumpAndAssert("Part 1", 1928, 6384282079460);
 
-    PrintTimings(parseTime, compactTime, checksumTime);
+    OutputHelpers.PrintTimings(parseTime, compactTime, checksumTime);
 }
 
 
@@ -86,7 +89,7 @@ var sw = new Stopwatch();
 
     checksum.DumpAndAssert("Part 1 Optimised", 1928, 6384282079460);
 
-    PrintTimings(sw.Elapsed);
+    OutputHelpers.PrintTimings(sw.Elapsed);
 }
 
 // Part 2
@@ -131,5 +134,5 @@ var sw = new Stopwatch();
 
     checksum.DumpAndAssert("Part 2", 2858, 6408966547049);
 
-    PrintTimings(parseTime, compactTime, checksumTime);
+    OutputHelpers.PrintTimings(parseTime, compactTime, checksumTime);
 }

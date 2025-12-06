@@ -1,6 +1,9 @@
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 
-var lines = ReadInputLines("02.real.txt");
+var lines = FileHelpers.ReadInputLines("02.txt");
 var sw = Stopwatch.StartNew();
 var input = lines
     .Select(line => line.Trim()
@@ -20,7 +23,7 @@ sw.Restart();
 input.Count(v => ValidateLevel(v, true)).DumpAndAssert("Part 2", 4, 577);
 var part2Time = sw.Elapsed;
 
-PrintTimings(parseTime, part1Time, part2Time);
+OutputHelpers.PrintTimings(parseTime, part1Time, part2Time);
 
 // Helpers
 static bool ValidateLevel(int[] values, bool dampener)

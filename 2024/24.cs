@@ -1,8 +1,10 @@
-#nullable enable
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
-var input = ReadInputText("24.real.txt");
+var input = FileHelpers.ReadInputText("24.txt");
 var sw = Stopwatch.StartNew();
 var wires = Regex.Matches(input, @"(\w{3}): (\d)").ToDictionary(m => m.Groups[1].Value, m => int.Parse(m.Groups[2].Value));
 var wiring = Regex.Matches(input, @"(\w+) (\w+) (\w+) -> (\w+)")
@@ -89,7 +91,7 @@ for (var i = 1; i <= wireCount; i++)
             : bName[0] == 'z'
             ? 'b'
             : 'c';
-        SwapOutputs($"z{i:00}", Reverse(zName));
+        SwapOutputs($"z{i:00}", GetReverse(zName));
 
         Rename(zName, $"{goodLetter}{i:00}");
     }
@@ -116,7 +118,7 @@ GetNumber('z').DumpAndAssert("Part 2 calculation", expectedResult);
 string.Join(",", swaps.Order()).DumpAndAssert("Part 2", "gfv,hcm,kfs,tqm,vwr,z06,z11,z16");
 var part2Time = sw.Elapsed;
 
-PrintTimings(parseTime, part1Time, part2Time);
+OutputHelpers.PrintTimings(parseTime, part1Time, part2Time);
 
 // Helpers
 void RunSimulation()
@@ -151,8 +153,8 @@ long GetNumber(char wireSet)
     .Select(w => (char)('0' + w.Value))
     .ToArray()), 2);
 
-string Rename(string w) => renames.TryGetValue(w, out var r) ? r : w;
-string Reverse(string w) => reverse.TryGetValue(w, out var r) ? r : w;
+string GetRename(string w) => renames.TryGetValue(w, out var r) ? r : w;
+string GetReverse(string w) => reverse.TryGetValue(w, out var r) ? r : w;
 void Rename(string name, string mappedName)
 {
     renames[name] = mappedName;
@@ -161,10 +163,10 @@ void Rename(string name, string mappedName)
 
 (string w2, string w3) FindWiring(string w1, string op)
 {
-    w1 = Rename(w1);
+    w1 = GetRename(w1);
     return wiring
         .Where(x => x.op == op)
-        .Select(x => (w1: Rename(x.w1), w2: Rename(x.w2), x.w3))
+        .Select(x => (w1: GetRename(x.w1), w2: GetRename(x.w2), x.w3))
         .Where(x => w1 == x.w1 || w1 == x.w2)
         .Select(x => (w1 == x.w1 ? x.w2 : x.w1, x.w3))
         .FirstOrDefault();

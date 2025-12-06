@@ -1,6 +1,9 @@
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 
-var lines = ReadInputLines("01.real.txt");
+var lines = FileHelpers.ReadInputLines("01.txt");
 var sw = Stopwatch.StartNew();
 var (list1, list2) = lines.Aggregate(
     (l1: new List<int>(), l2: new List<int>()),
@@ -30,4 +33,4 @@ Enumerable.Range(0, list1.Count)
     .DumpAndAssert("Part 2", 31, 26674158);
 var part2Time = sw.Elapsed;
 
-PrintTimings(parseTime, part1Time, part2Time);
+OutputHelpers.PrintTimings(parseTime, part1Time, part2Time);

@@ -1,11 +1,14 @@
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 
-var lines = ReadInputLines("18.real.txt");
+//int steps = 12, mapSize = 7;
+int steps = 1024, mapSize = 71;
+var lines = FileHelpers.ReadInputLines("18.txt");
 
 var sw = Stopwatch.StartNew();
-var steps = int.Parse(lines[0]);
-var mapSize = int.Parse(lines[1]);
-var map = new Map(mapSize, mapSize);
+var map = new Map(mapSize + 2, mapSize + 2);
 for (var i = 0; i < map.Width; i++)
 for (var j = 0; j < map.Height; j++)
 map[i, j] = i == 0 || j == 0 || i == map.Width - 1 || j == map.Height - 1
@@ -15,7 +18,7 @@ var parseTime = sw.Elapsed;
 
 // Part 1
 sw.Restart();
-var fallingBytes = lines.Skip(2)
+var fallingBytes = lines
     .Select(l => l.Split(',').Select(int.Parse).ToArray())
     .Select(x => (x: x[1], y: x[0]))
     .ToArray();
@@ -54,7 +57,7 @@ foreach (var (x, y) in fallingBytes.Skip(steps))
 }
 var part2Time = sw.Elapsed;
 
-PrintTimings(parseTime, part1Time, part2Time);
+OutputHelpers.PrintTimings(parseTime, part1Time, part2Time);
 
 Deer TryEscape(Point? lastAdded = null)
 {

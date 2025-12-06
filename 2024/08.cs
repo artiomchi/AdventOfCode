@@ -1,6 +1,9 @@
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 
-var map = ReadInputLines("08.real.txt");
+var map = FileHelpers.ReadInputLines("08.txt");
 var antinodes1 = new bool[map.Length, map[0].Length];
 var antinodes2 = new bool[map.Length, map[0].Length];
 var sw = Stopwatch.StartNew();
@@ -40,8 +43,7 @@ foreach (var (a, b) in antennaSets)
 antinodes1.OfType<bool>().Count(n => n).DumpAndAssert("Part 1", 14, 329);
 antinodes2.OfType<bool>().Count(n => n).DumpAndAssert("Part 2", 34, 1190);
 
-Write("Execution time: ");
-PrintTimings(sw.Elapsed);
+OutputHelpers.PrintTimings(sw.Elapsed);
 
 // helpers
 bool IsInBounds(Point p) { return p.X >= 0 && p.Y >= 0 && p.X < map.Length && p.Y < map[0].Length; }

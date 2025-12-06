@@ -1,6 +1,9 @@
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 
-var lines = ReadInputLines("10.real.txt");
+var lines = FileHelpers.ReadInputLines("10.txt");
 var sw = Stopwatch.StartNew();
 var map = new int[lines.Length,lines[0].Length];
 for (var x = 0; x < lines.Length; x++)
@@ -21,7 +24,7 @@ sw.Restart();
 heads.Select(h => CountScore(map, h, 2)).Sum().DumpAndAssert("Part 2", 81, 1805);
 var part2Time = sw.Elapsed;
 
-PrintTimings(prepTime, part1Time, part2Time);
+OutputHelpers.PrintTimings(prepTime, part1Time, part2Time);
 
 static int CountScore(int[,] map, (int x, int y) head, int part)
 {

@@ -1,7 +1,9 @@
-#nullable enable
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 
-var lines = ReadInputLines("23.real.txt");
+var lines = FileHelpers.ReadInputLines("23.txt");
 var sw = Stopwatch.StartNew();
 var input = lines.Select(i => i.Split('-')).ToArray();
 var tpcs = input.SelectMany(i => i).Where(i => i[0] == 't').Distinct().ToArray();
@@ -46,7 +48,7 @@ allSets.Where(s => s.Count == 3).Count().DumpAndAssert("Part 1", 7, 1314);
 string.Join(",", allSets.OrderByDescending(s => s.Count).First().Order()).DumpAndAssert("Part 2", "co,de,ka,ta", "bg,bu,ce,ga,hw,jw,nf,nt,ox,tj,uu,vk,wp");
 var solveTime = sw.Elapsed;
 
-PrintTimings(parseTime, mapTime, solveTime);
+OutputHelpers.PrintTimings(parseTime, mapTime, solveTime);
 
 IEnumerable<HashSet<string>> GetSets(HashSet<string> searchCache, HashSet<string> set, string latest)
 {

@@ -1,6 +1,9 @@
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 
-var lines = ReadInputLines("04.real.txt");
+var lines = FileHelpers.ReadInputLines("04.txt");
 var sw = Stopwatch.StartNew();
 var matrix = lines.Select(s => s.Trim().ToArray()).ToArray();
 var parseTime = sw.Elapsed;
@@ -50,4 +53,4 @@ foreach (var (i, line) in matrix.Index())
 matches.DumpAndAssert("Part 2", 9, 1936);
 var part2Time = sw.Elapsed;
 
-PrintTimings(parseTime, part1Time, part2Time);
+OutputHelpers.PrintTimings(parseTime, part1Time, part2Time);

@@ -1,7 +1,9 @@
-#nullable enable
-#load "..\Helpers.csx"
+#!/usr/bin/dotnet run
+#:project ../Helpers/AoC.Helpers.csproj
+using AoC.Helpers;
+using System.Diagnostics;
 
-var lines = ReadInputLines("12.real.txt");
+var lines = FileHelpers.ReadInputLines("12.txt");
 var sw = Stopwatch.StartNew();
 var map = lines.Index()
     .Select(x => x.Item.Index().Select(y => new Cell(x.Index, y.Index, y.Item)).ToArray()).ToArray();
@@ -80,7 +82,7 @@ totalByPieces.DumpAndAssert("Part 1", 140, 772, 1930, 1477762, 1184);
 totalBySides.DumpAndAssert("Part 2", 80, 436, 368, 1206, 923480);
 var partsTime = sw.Elapsed;
 
-PrintTimings(parseTime, partsTime);
+OutputHelpers.PrintTimings(parseTime, partsTime);
 
 static Cell? GetCell(Cell[][] map, Point point, Vector direction)
 {
@@ -102,18 +104,6 @@ static IEnumerable<Cell> LinkedCells(Cell[][] map, Point point)
         });
 }
 
-public partial record struct Vector
-{
-    public Vector Rotate()
-        => this switch
-        {
-            (1, 0) => 'v',
-            (0, 1) => '<',
-            (-1, 0) => '^',
-            _ => '>'
-        };
-}
-
 readonly record struct Line(Point A, Point B)
 {
     public bool IsHorizontal => A.Y == B.Y;
@@ -131,4 +121,19 @@ class Cell(int x, int y, char plant)
     public Point P { get; set; } = (x, y);
     public char Plant { get; set; } = plant;
     public Guid? Group { get; set; }
+}
+
+static class LocalExtensions
+{
+    extension(Vector vector)
+    {
+        public Vector Rotate()
+            => vector switch
+            {
+                (1, 0) => 'v',
+                (0, 1) => '<',
+                (-1, 0) => '^',
+                _ => '>'
+            };
+    }
 }
