@@ -1,5 +1,6 @@
 #:package CliWrap@3.7.0
 using System.Runtime.CompilerServices;
+using System.Text;
 using CliWrap;
 
 // Unfinished days
@@ -41,17 +42,21 @@ if (args?.Contains("clean") == true)
 }
 
 Console.WriteLine("Pre-compiling...");
-foreach (var d in days)
-{
-    if (File.Exists(Path.Combine(GetScriptFolder(), $"publish\\{d:00}.dll")))
-        continue;
-    await Cli.Wrap("dotnet")
-        .WithArguments($"build -c Release {d:00}.cs")
-        .WithWorkingDirectory(GetScriptFolder())
-        .WithStandardErrorPipe(PipeTarget.ToStream(Console.OpenStandardError()))
-        .WithStandardOutputPipe(PipeTarget.ToStream(Console.OpenStandardOutput()))
-        .ExecuteAsync();
-}
+var buildTasks = days
+    .Select(d => Task.Run(async () =>
+    {
+        var output = new StringBuilder();
+        var target = PipeTarget.ToStringBuilder(output);
+        var result = await Cli.Wrap("dotnet")
+            .WithArguments($"build -c Release {d:00}.cs")
+            .WithWorkingDirectory(GetScriptFolder())
+            .WithStandardErrorPipe(target)
+            .WithStandardOutputPipe(target)
+            .ExecuteAsync();
+        Console.WriteLine(output.ToString());
+    }))
+    .ToArray();
+await Task.WhenAll(buildTasks);
 
 foreach (var d in days)
 {
